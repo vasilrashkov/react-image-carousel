@@ -1,0 +1,68 @@
+# Dependency directories
+node_modules/
+
+# Build directories
+dist/
+out/
+
+# Local environment files
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor directories and files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Optional npm cache directory
+.npm
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Linux
+*.pid
+*.seed
+
+# Test coverage directory
+coverage/
+
+# Miscellaneous
+*.log
+*.tmp
+
+# TypeScript
+*.tsbuildinfo
+
+# Styled Components cache
+.styled-components/
+
+# Vite cache
+.vite/
+.cache/
+
+# eslint cache
+.eslintcache
+
+# local jest coverage reports
+coverage/
+
+# local jest cache
+.jest/
+
+# lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
