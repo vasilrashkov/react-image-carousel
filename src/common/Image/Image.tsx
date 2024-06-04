@@ -1,3 +1,4 @@
+import { ForwardedRef, forwardRef } from "react";
 import styled from "styled-components";
 
 type ImageComponentProps = {
@@ -5,23 +6,26 @@ type ImageComponentProps = {
     alt?: string;
     className?: string;
     width?: string;
+    ref?: any;
     height?: string;
     maxHeight?: number;
     maxWidth?: number;
+    style?: React.CSSProperties;
 
     onClick?: () => void;
 };
 
-const StyledImage = styled.img<{ maxHeight?: number; maxWidth?: number; }>`
-    ${props => props.maxHeight && `max-height: ${props.maxHeight}px;`}
-    ${props => props.maxWidth && `max-width: ${props.maxWidth}px;`}
+const StyledImage = styled.img`
+    ${props => props.style?.maxHeight && `max-height: ${props.style?.maxHeight}px;`}
+    ${props => props.style?.maxWidth && `max-width: ${props.style?.maxWidth}px;`}
     display: block;
     width: auto;
-    height: auto;
+    height: ${props => props.style?.height ? props.style?.height : "auto"};
 `;
 
-const Image: React.FC<ImageComponentProps> = ({
+const Image: React.FC<ImageComponentProps> = forwardRef(function Image({
     src,
+    style,
     alt = "image-component",
     className,
     width,
@@ -29,18 +33,17 @@ const Image: React.FC<ImageComponentProps> = ({
     maxHeight,
     maxWidth,
     onClick,
-}) => {
+}: ImageComponentProps, ref: ForwardedRef<HTMLImageElement>) {
     return (
         <StyledImage
+            ref={ref}
             src={src}
+            style={{...style, maxHeight, maxWidth}}
             alt={alt}
-            maxHeight={maxHeight}
-            maxWidth={maxWidth}
             onClick={onClick ? onClick : undefined}
             className={className}
-            style={{ width, height }}
         />
     );
-};
+});
 
 export default Image;

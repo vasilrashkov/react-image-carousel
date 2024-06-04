@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Image from "../../common/Image/Image";
+import VirtualizedList from "../../common/VirtualizedList/VirtualizedList";
 
 const CarouselContainer = styled.div<{ type: CarouselType }>`
     display: flex;
@@ -10,8 +11,6 @@ const CarouselContainer = styled.div<{ type: CarouselType }>`
     overflow-y: ${props => props.type === CarouselType.VERTICAL_SLIDER ? 'auto' : 'hidden'};
     width: 100%;
     height: 100%;
-    background-color: #f5f5f5;
-    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
 `;
 
 export enum CarouselType {
@@ -26,11 +25,11 @@ type CarouselProps = {
 
 const Carousel: React.FC<CarouselProps> = ({ type }) => {
     const carouselRef = useRef<HTMLDivElement>(null);
-    const [images, setImages] = useState<string[]>([]);
+
+    const [images, setImages] = useState<{ url: string; height: number; width: number; }[]>([]);
 
     const [carouselWidth, setCarouselWidth] = useState<number>(0);
     const [carouselHeight, setCarouselHeight] = useState<number>(0);
-
 
     useEffect(() => {
         if (!carouselRef.current) return;
@@ -41,20 +40,55 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
 
     useEffect(() => {
         const i = [];
-        for (let x = 0; x < 10; x++) {
-            const height = Math.floor(Math.random() * 300) + 100;
-            const width = Math.floor(Math.random() * 200) + 100;
-            i.push(`https://picsum.photos/${width}/${height}`);
+        for (let x = 0; x < 1000000; x++) {
+            const height = Math.floor(Math.random() * 300) + 600;
+            const width = Math.floor(Math.random() * 200) + 600;
+            i.push({
+                url: `https://picsum.photos/${width}/${height}`,
+                height: height,
+                width: width
+            })
         };
 
         setImages(i);
     }, []);
 
+    const renderItem = (index: number, style: React.CSSProperties) => {
+        const usedIndex = index === images.length ? 0 : index;
+
+        return (
+            <Image
+                key={`index-${usedIndex}`}
+                maxHeight={type === CarouselType.VERTICAL_SLIDER ? undefined : carouselHeight}
+                maxWidth={type === CarouselType.HORIZONTAL_SLIDER ? carouselWidth : undefined}
+                src={images[usedIndex].url}
+                style={style}
+                alt={`image-${usedIndex}`}
+            />
+        );
+    };
+
+    const getNextItemHeight = (index: number, containerHeight: number, containerWidth: number) => {
+        const usedIndex = index === images.length ? 0 : index;
+
+        const item = images[usedIndex];
+
+        const imageHeight = item.height;
+        const imageWidth = item.width;
+
+        const ratio = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
+
+        return { width: imageWidth * ratio, height: imageHeight * ratio };
+    };
+
+    if (!images.length) return (<div>Loading...</div>);
+
     return (
         <CarouselContainer type={type} ref={carouselRef}>
-            {images.map((image, index) => (
-                <Image maxHeight={type === CarouselType.VERTICAL_SLIDER ? undefined : carouselHeight} maxWidth={type === CarouselType.HORIZONTAL_SLIDER ? carouselWidth : undefined} key={index} src={image} alt={`image-${index}`} />
-            ))}
+            <VirtualizedList 
+                totalItems={images.length} 
+                configurations={{ threshold: 400, }} 
+                getNextItemHeight={getNextItemHeight} renderItem={renderItem} />
         </CarouselContainer>
     );
 };
