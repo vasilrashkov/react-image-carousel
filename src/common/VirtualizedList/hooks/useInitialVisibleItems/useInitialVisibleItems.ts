@@ -1,4 +1,4 @@
-import { GetNextItemHeight, VirtualizedListItem } from "../../VirtualizedList";
+import { GetNextItemDimentions, VirtualizedListItem, VirtualizedListType } from "../../VirtualizedList";
 import useNewItem from "../useNewItem/useNewItem";
 
 type GetInitialVisibleItemsProps = {
@@ -7,8 +7,9 @@ type GetInitialVisibleItemsProps = {
     items: VirtualizedListItem[],
     visibleItems: VirtualizedListItem[],
     gapValue: number,
+    virtualizedListType: VirtualizedListType,
 
-    getNextItemHeight: GetNextItemHeight;
+    getNextItemDimentions: GetNextItemDimentions;
 };
 
 const useInitialVisibleItems = () => {
@@ -18,26 +19,32 @@ const useInitialVisibleItems = () => {
         renderedHeight,
         renderedWidth,
         items,
+        virtualizedListType,
         gapValue,
 
-        getNextItemHeight
+        getNextItemDimentions
     }: GetInitialVisibleItemsProps) => {
         let visibleItems: VirtualizedListItem[] = [];
-        let itemsHeight = visibleItems.reduce((acc, item) => acc + (item.height ?? 0), 0);
-        while (itemsHeight < renderedHeight * 2) {
-            const item = getNextItemHeight(items.length, renderedHeight, renderedWidth);
+        let itemsHeight = 0;
+        let itemsWidth = 0;
+
+        while ((virtualizedListType === VirtualizedListType.VERTICAL && itemsHeight < renderedHeight * 2) || 
+               (virtualizedListType === VirtualizedListType.HORIZONTAL && itemsWidth < renderedWidth * 2)) {
+            const item = getNextItemDimentions(items.length, renderedHeight, renderedWidth);
 
             const newItem: VirtualizedListItem = generateNewItem({
                 index: visibleItems.length,
                 totalItemsIndex: visibleItems.length,
                 height: item.height,
                 width: item.width,
-                top: visibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0),
+                top: virtualizedListType === VirtualizedListType.VERTICAL ? visibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0) : undefined,
+                left: virtualizedListType === VirtualizedListType.HORIZONTAL ? visibleItems.reduce((prev, curr) => prev + (curr.width ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0) : 0,
             });
             
             visibleItems = [...visibleItems, newItem];
             
             itemsHeight += item.height;
+            itemsWidth += item.width;
         }
 
         return visibleItems;

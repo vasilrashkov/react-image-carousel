@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { GetNextItemDimentions, VirtualizedListItem } from "../../VirtualizedList";
 import useNewItem from '../useNewItem/useNewItem';
 
-type UseVerticalScrollProps = {
+type UseHorizontalScrollProps = {
     containerRef: React.RefObject<HTMLDivElement>;
     renderedHeight: number | null;
     renderedWidth: number | null;
@@ -16,7 +16,7 @@ type UseVerticalScrollProps = {
     setVisibleItems: React.Dispatch<React.SetStateAction<VirtualizedListItem[]>>;
 };
 
-const useVerticalScroll = ({
+const useHorizontalScroll = ({
     containerRef,
     renderedHeight,
     renderedWidth,
@@ -28,7 +28,7 @@ const useVerticalScroll = ({
     gapValue,
     setItems,
     setVisibleItems,
-}: UseVerticalScrollProps) => {
+}: UseHorizontalScrollProps) => {
     const { generateNewItem } = useNewItem();
     const [nextItemIndex, setNextItemIndex] = useState<number | null>(null);
 
@@ -38,29 +38,23 @@ const useVerticalScroll = ({
         setNextItemIndex(items.length);
     }, [nextItemIndex, items]);
 
-    const onVerticalScroll = () => {
+    const onHorizontalScroll = () => {
         if (!containerRef.current || !renderedHeight || !renderedWidth || nextItemIndex === null) return;
 
-        const scrollTop = containerRef.current.scrollTop;
-        const totalHeight = items.reduce((acc, item) => acc + (item.height ?? 0), 0);
+        const scrollLeft = containerRef.current.scrollLeft;
+        const totalWidth = items.reduce((acc, item) => acc + (item.width ?? 0), 0);
         const lastVisibleItem = visibleItems[visibleItems.length - 1];
 
-        const thresholdValue = (threshold) ;
+        const thresholdValue = threshold;
     
-        if (scrollTop > renderedHeight && scrollTop < Number((visibleItems[0].top ?? 0) + thresholdValue)) {
+        if (scrollLeft > renderedWidth && scrollLeft < Number((visibleItems[0].left ?? 0) + thresholdValue)) {
             const newItem = items[visibleItems[0].totalItemsIndex - 1 < 0 ? 0 : visibleItems[0].totalItemsIndex - 1];
             setVisibleItems(prevVisibleItems => [newItem, ...prevVisibleItems.slice(0, prevVisibleItems.length - 1)]);
-        } else if (scrollTop + renderedHeight >= ((lastVisibleItem.top ?? 0) + (lastVisibleItem.height ?? 0)) - thresholdValue) {
-            // if we have scrolled down, then up,
-            // and the last visible item is not the last item we have ever rendered (index based),
-            // no need to generate new item
-            // reuse the ones we have stored in the items state.
+        } else if (scrollLeft + renderedWidth >= ((lastVisibleItem.left ?? 0) + (lastVisibleItem.width ?? 0)) - thresholdValue) {
             if (visibleItems[visibleItems.length - 1].index < items[items.length - 1].index) {
                 const newItem = items[visibleItems[visibleItems.length - 1].totalItemsIndex + 1];
                 setVisibleItems(prevVisibleItems => [...prevVisibleItems.slice(1, prevVisibleItems.length), newItem]);
             } else {
-                //TODO: currently it is stacking the images after reaching the end
-                //TODO: simply reuse the rendered items (determine by index)
                 if (nextItemIndex === totalItems) {
                     setNextItemIndex(0);
                 }
@@ -72,8 +66,8 @@ const useVerticalScroll = ({
                     totalItemsIndex: items.length,
                     height: item.height,
                     width: item.width,
-                    top: totalHeight + gapValue,
-                    styleTop: totalHeight + (items.length * gapValue) + gapValue
+                    left: totalWidth + gapValue,
+                    styleLeft: totalWidth + (items.length * gapValue) + gapValue
                 });
         
                 setItems(prevItems => [...prevItems, newItem]);
@@ -83,8 +77,8 @@ const useVerticalScroll = ({
     };
 
     return {
-        onVerticalScroll
+        onHorizontalScroll
     };
 };
 
-export default useVerticalScroll;
+export default useHorizontalScroll;

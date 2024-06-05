@@ -5,9 +5,10 @@ type GetNewItemProps = {
     totalItemsIndex: number;
     height: number;
     width: number;
-    top: number;
-
+    top?: number;
     styleTop?: number;
+    left?: number;
+    styleLeft?: number;
 };
 
 const useNewItem = () => {
@@ -17,7 +18,9 @@ const useNewItem = () => {
         height,
         width,
         top,
-        styleTop
+        styleTop,
+        left,
+        styleLeft,
     }: GetNewItemProps) => {
         const newItem: VirtualizedListItem = {
             index,
@@ -25,11 +28,13 @@ const useNewItem = () => {
             height,
             width,
             top,
+            left,
             style: {
                 position: "absolute",
                 height: `${height}px`,
                 width: `${width}px`,
-                top: `${styleTop ?? top}px`,
+                ...((styleTop !== undefined || top !== undefined) && { top: `${styleTop ?? top}px` }),
+                ...((styleLeft !== undefined || left !== undefined) && { left: `${styleLeft ?? left}px` }),
             }
         };
 

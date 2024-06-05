@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Image from "../../common/Image/Image";
-import VirtualizedList from "../../common/VirtualizedList/VirtualizedList";
-import ElementHelper from "../../utils/ElementHelper";
+import VirtualizedList, { VirtualizedListType } from "../../common/VirtualizedList/VirtualizedList";
 
 const CarouselContainer = styled.div<{ type: CarouselType }>`
     display: flex;
@@ -61,13 +60,6 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         setImages(i);
     }, []);
 
-    useEffect(() => {
-        ElementHelper.getImageHeight('https://picsum.photos/300/3500').then((height) => {    
-            // debugger;
-        });
-
-    }, []);
-
     const renderItem = (index: number, style: React.CSSProperties) => {
         const usedIndex = index === images.length ? 0 : index;
 
@@ -102,8 +94,9 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         <CarouselContainer type={type} ref={carouselRef}>
             <VirtualizedList 
                 totalItems={images.length} 
-                configurations={{ threshold: 400, }} 
-                getNextItemHeight={getNextItemHeight} renderItem={renderItem} />
+                configurations={{ threshold: 400, type: VirtualizedListType.HORIZONTAL, gap: 20 }} 
+                getNextItemDimentions={getNextItemHeight} 
+                renderItem={renderItem} />
         </CarouselContainer>
     );
 };

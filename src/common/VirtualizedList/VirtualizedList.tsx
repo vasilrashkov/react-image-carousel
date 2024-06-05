@@ -3,11 +3,18 @@ import styled from "styled-components";
 import useElementRenderedHeight from "../../hooks/useElementRenderedHeight/useElementRenderedHeight";
 import useInitialVisibleItems from "./hooks/useInitialVisibleItems/useInitialVisibleItems";
 import useVerticalScroll from "./hooks/useVerticalScroll/useVerticalScroll";
+import useHorizontalScroll from "./hooks/useHorizontalScroll/useHorizontalScroll";
+
+export enum VirtualizedListType {
+    VERTICAL = 'vertical',
+    HORIZONTAL = 'horizontal',
+};
 
 type VirtualizedListConfigurations = {
     itemHeight?: number;
     itemWidth?: number;
     threshold: number;
+    type: VirtualizedListType;
 
     /**
      * Gap between items displayed in the list
@@ -17,13 +24,13 @@ type VirtualizedListConfigurations = {
     //TODO: scroll type -> vertical, horizontal
 };
 
-export type GetNextItemHeight = (index: number, renderedHeight: number, renderedWidth: number) => { height: number, width: number };
+export type GetNextItemDimentions = (index: number, renderedHeight: number, renderedWidth: number) => { height: number, width: number };
 
 type VirtualizedListProps = {
     configurations: VirtualizedListConfigurations;
     totalItems: number;
 
-    getNextItemHeight: GetNextItemHeight;
+    getNextItemDimentions: GetNextItemDimentions;
     renderItem: (index: number, style: React.CSSProperties) => React.ReactNode;
 };
 
@@ -35,14 +42,15 @@ export type VirtualizedListItem = {
     height?: number;
     width?: number;
 
-    top: number;
+    left?: number;
+    top?: number;
 };
 
-const VirtualizedListContainer = styled.div`
+const VirtualizedListContainer = styled.div<{ type: VirtualizedListType }>`
     overflow: auto;
     height: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: ${props => props.type === VirtualizedListType.VERTICAL ? "column" : "row"};
     align-items: center;
     gap: 20px;
     position: relative;
@@ -54,15 +62,16 @@ const VirtualizedListContainer = styled.div`
 
 const defaultConfigurations: VirtualizedListConfigurations = {
     threshold: 20,
+    type: VirtualizedListType.VERTICAL,
     gap: 20
 };
 
 const VirtualizedList: React.FC<VirtualizedListProps> = ({
-    configurations: { threshold, gap },
+    configurations: { type, threshold, gap },
     totalItems,
 
     renderItem,
-    getNextItemHeight
+    getNextItemDimentions
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -83,7 +92,20 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
         visibleItems,
         threshold,
         totalItems,
-        getNextItemHeight,
+        getNextItemDimentions,
+        gapValue,
+        setItems,
+        setVisibleItems
+    });
+    const { onHorizontalScroll } = useHorizontalScroll({
+        containerRef,
+        renderedHeight,
+        renderedWidth,
+        items,
+        visibleItems,
+        threshold,
+        totalItems,
+        getNextItemDimentions,
         gapValue,
         setItems,
         setVisibleItems
@@ -95,25 +117,26 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
         const newVisibleItems = getInitialVisibleItems({
             renderedHeight,
             renderedWidth,
+            virtualizedListType: type,
             items,
             visibleItems,
             gapValue,
-            getNextItemHeight
+            getNextItemDimentions
         });
 
         setItems(newVisibleItems);
         setVisibleItems(newVisibleItems);
 
-    }, [renderedHeight, renderedHeight, renderedWidth, items, visibleItems, getNextItemHeight]);
+    }, [renderedHeight, renderedHeight, renderedWidth, items, visibleItems, getNextItemDimentions]);
 
     useEffect(() => {
-        containerRef.current?.addEventListener('scroll', onVerticalScroll);
+        containerRef.current?.addEventListener('scroll', type === VirtualizedListType.VERTICAL ? onVerticalScroll : onHorizontalScroll);
 
-        return containerRef.current?.removeEventListener('scroll', onVerticalScroll);
+        return containerRef.current?.removeEventListener('scroll', type === VirtualizedListType.VERTICAL ? onVerticalScroll : onHorizontalScroll);
     }, [containerRef]);
 
     return (
-        <VirtualizedListContainer onScroll={onVerticalScroll} ref={containerRef}>
+        <VirtualizedListContainer type={type} onScroll={type === VirtualizedListType.VERTICAL ? onVerticalScroll : onHorizontalScroll} ref={containerRef}>
             {visibleItems.map((item) => renderItem(item.index, item.style))}
         </VirtualizedListContainer>
     );
