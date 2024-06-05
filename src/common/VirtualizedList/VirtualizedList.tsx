@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import useElementRenderedHeight from "../../hooks/useElementRenderedHeight/useElementRenderedHeight";
-import useNewItem from "./hooks/useNewItem/useNewItem";
 import useInitialVisibleItems from "./hooks/useInitialVisibleItems/useInitialVisibleItems";
+import useVerticalScroll from "./hooks/useVerticalScroll/useVerticalScroll";
 
 type VirtualizedListConfigurations = {
     itemHeight?: number;
@@ -57,7 +57,7 @@ const defaultConfigurations: VirtualizedListConfigurations = {
 };
 
 const VirtualizedList: React.FC<VirtualizedListProps> = ({
-    configurations: { itemHeight, threshold, gap },
+    configurations: { threshold, gap },
     totalItems,
 
     renderItem,
@@ -67,57 +67,29 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
 
     const [items, setItems] = useState<VirtualizedListItem[]>([]);
     const [visibleItems, setVisibleItems] = useState<VirtualizedListItem[]>([]);
-    const [itemHeightState, setItemHeightState] = useState<number | null>(itemHeight ?? null);
     
-    const { generateNewItem } = useNewItem();
-    const { getInitialVisibleItems } = useInitialVisibleItems();
-    const { renderedHeight, renderedWidth } = useElementRenderedHeight({ ref: containerRef });
-
     const gapValue = useMemo(() => {
         return gap ?? (defaultConfigurations.gap as number);
     }, [gap]);
 
-    useEffect(() => {
-        if (itemHeightState) return;
-
-        setItemHeightState(itemHeight ?? (renderedHeight ?? null));
-    }, [itemHeight, renderedHeight]);
-    
-    const onScroll = () => {
-        if (!containerRef.current || !itemHeightState || !renderedHeight || !renderedWidth) return;
-    
-        const scrollTop = containerRef.current.scrollTop;
-        const totalHeight = items.reduce((acc, item) => acc + (item.height ?? 0), 0);
-        const lastVisibleItem = visibleItems[visibleItems.length - 1];
-
-        const thresholdValue = (threshold) ;
-    
-        if (scrollTop > renderedHeight && scrollTop < Number(visibleItems[0].top + thresholdValue)) {
-            const newItem = items[visibleItems[0].index - 1 < 0 ? 0 : visibleItems[0].index - 1];
-            setVisibleItems(prevVisibleItems => [newItem, ...prevVisibleItems.slice(0, prevVisibleItems.length - 1)]);
-        } else if (scrollTop + renderedHeight >= (lastVisibleItem.top + (lastVisibleItem.height ?? itemHeightState)) - thresholdValue) {
-            if (visibleItems[visibleItems.length - 1].index < items[items.length - 1].index) {
-                const newItem = items[visibleItems[visibleItems.length - 1].index + 1];
-                setVisibleItems(prevVisibleItems => [...prevVisibleItems.slice(1, prevVisibleItems.length), newItem]);
-            } else {
-                const item = getNextItemHeight((items.length === totalItems - 1 ? 0 : items.length), itemHeightState, renderedWidth);
-
-                const newItem: VirtualizedListItem = generateNewItem({
-                    index: items.length,
-                    height: item.height,
-                    width: item.width,
-                    top: totalHeight + gapValue,
-                    styleTop: totalHeight + gapValue + gapValue
-                });
-        
-                setItems(prevItems => [...prevItems, newItem]);
-                setVisibleItems(prevVisibleItems => [...prevVisibleItems.slice((prevVisibleItems.length > 5 ? 1 : 0), prevVisibleItems.length), newItem]);
-            }
-        }
-    };
+    const { renderedHeight, renderedWidth } = useElementRenderedHeight({ ref: containerRef });
+    const { getInitialVisibleItems } = useInitialVisibleItems();
+    const { onVerticalScroll } = useVerticalScroll({
+        containerRef,
+        renderedHeight,
+        renderedWidth,
+        items,
+        visibleItems,
+        threshold,
+        totalItems,
+        getNextItemHeight,
+        gapValue,
+        setItems,
+        setVisibleItems
+    });
 
     useEffect(() => {
-        if (!containerRef.current || !itemHeightState || !renderedHeight || !renderedWidth || items.length > 0 || visibleItems.length > 0) return;
+        if (!containerRef.current || !renderedHeight || !renderedWidth || items.length > 0 || visibleItems.length > 0) return;
 
         const newVisibleItems = getInitialVisibleItems({
             renderedHeight,
@@ -125,23 +97,22 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
             items,
             visibleItems,
             gapValue,
-
             getNextItemHeight
         });
 
         setItems(newVisibleItems);
         setVisibleItems(newVisibleItems);
 
-    }, [renderedHeight, renderedHeight, renderedWidth, items, visibleItems, itemHeightState, getNextItemHeight]);
+    }, [renderedHeight, renderedHeight, renderedWidth, items, visibleItems, getNextItemHeight]);
 
     useEffect(() => {
-        containerRef.current?.addEventListener('scroll', onScroll);
+        containerRef.current?.addEventListener('scroll', onVerticalScroll);
 
-        return containerRef.current?.removeEventListener('scroll', onScroll);
+        return containerRef.current?.removeEventListener('scroll', onVerticalScroll);
     }, [containerRef]);
 
     return (
-        <VirtualizedListContainer onScroll={onScroll} ref={containerRef}>
+        <VirtualizedListContainer onScroll={onVerticalScroll} ref={containerRef}>
             {visibleItems.map((item) => renderItem(item.index, item.style))}
         </VirtualizedListContainer>
     );

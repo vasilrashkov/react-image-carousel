@@ -22,8 +22,8 @@ export enum CarouselType {
 
 type CarouselImage = {
     url: string;
-    height?: number;
-    width?: number;
+    height: number;
+    width: number;
 };
 
 type CarouselProps = {
@@ -48,7 +48,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
 
     useEffect(() => {
         const i = [];
-        for (let x = 0; x < 1000000; x++) {
+        for (let x = 0; x < 10; x++) {
             const height = Math.floor(Math.random() * 300) + 600;
             const width = Math.floor(Math.random() * 200) + 600;
             i.push({
@@ -63,7 +63,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
 
     useEffect(() => {
         ElementHelper.getImageHeight('https://picsum.photos/300/3500').then((height) => {    
-            debugger;
+            // debugger;
         });
 
     }, []);
@@ -102,7 +102,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         <CarouselContainer type={type} ref={carouselRef}>
             <VirtualizedList 
                 totalItems={images.length} 
-                configurations={{ threshold: 1000, }} 
+                configurations={{ threshold: 400, }} 
                 getNextItemHeight={getNextItemHeight} renderItem={renderItem} />
         </CarouselContainer>
     );
