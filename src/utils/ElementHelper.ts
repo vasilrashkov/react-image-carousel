@@ -2,7 +2,6 @@ import { createRoot } from "react-dom/client";
 
 const ElementHelper = {
     getImageHeight: async (src: string): Promise<number> => {
-        console.log("Src:", src);
         try {
             const height = await new Promise((resolve, reject) => {
                 const img = new Image();
@@ -12,7 +11,6 @@ const ElementHelper = {
             });
             return height as number;
         } catch (error) {
-            console.error('Error:', error);
             return 0;
         }
     },
@@ -25,7 +23,6 @@ const ElementHelper = {
         div.style.width = 'auto';
         div.style.overflow = 'hidden';
 
-        // Append the div to body
         document.body.appendChild(div);
 
         const root = createRoot(div);

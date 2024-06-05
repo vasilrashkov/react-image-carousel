@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import useElementRenderedHeight from "../../hooks/useElementRenderedHeight/useElementRenderedHeight";
+import useNewItem from "./hooks/useNewItem/useNewItem";
+import useInitialVisibleItems from "./hooks/useInitialVisibleItems/useInitialVisibleItems";
 
 type VirtualizedListConfigurations = {
     itemHeight?: number;
@@ -15,15 +17,17 @@ type VirtualizedListConfigurations = {
     //TODO: scroll type -> vertical, horizontal
 };
 
+export type GetNextItemHeight = (index: number, renderedHeight: number, renderedWidth: number) => { height: number, width: number };
+
 type VirtualizedListProps = {
     configurations: VirtualizedListConfigurations;
     totalItems: number;
 
-    getNextItemHeight: (index: number, renderedHeight: number, renderedWidth: number) => { height: number, width: number };
+    getNextItemHeight: GetNextItemHeight;
     renderItem: (index: number, style: React.CSSProperties) => React.ReactNode;
 };
 
-type VirtualizedListItem = {
+export type VirtualizedListItem = {
     index: number;
     ref?: React.RefObject<HTMLDivElement> | null;
     style: React.CSSProperties;
@@ -64,8 +68,14 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
     const [items, setItems] = useState<VirtualizedListItem[]>([]);
     const [visibleItems, setVisibleItems] = useState<VirtualizedListItem[]>([]);
     const [itemHeightState, setItemHeightState] = useState<number | null>(itemHeight ?? null);
-
+    
+    const { generateNewItem } = useNewItem();
+    const { getInitialVisibleItems } = useInitialVisibleItems();
     const { renderedHeight, renderedWidth } = useElementRenderedHeight({ ref: containerRef });
+
+    const gapValue = useMemo(() => {
+        return gap ?? (defaultConfigurations.gap as number);
+    }, [gap]);
 
     useEffect(() => {
         if (itemHeightState) return;
@@ -91,19 +101,14 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
                 setVisibleItems(prevVisibleItems => [...prevVisibleItems.slice(1, prevVisibleItems.length), newItem]);
             } else {
                 const item = getNextItemHeight((items.length === totalItems - 1 ? 0 : items.length), itemHeightState, renderedWidth);
-                
-                const newItem: VirtualizedListItem = {
+
+                const newItem: VirtualizedListItem = generateNewItem({
                     index: items.length,
                     height: item.height,
                     width: item.width,
-                    top: totalHeight + (gap ?? (defaultConfigurations.gap as number)),
-                    style: {
-                        position: "absolute",
-                        height: `${item.height}px`,
-                        width: `${item.width}px`,
-                        top: `${totalHeight + (items.length * (gap ?? (defaultConfigurations.gap as number))) + (gap ?? (defaultConfigurations.gap as number))}px`,
-                    }
-                };
+                    top: totalHeight + gapValue,
+                    styleTop: totalHeight + gapValue + gapValue
+                });
         
                 setItems(prevItems => [...prevItems, newItem]);
                 setVisibleItems(prevVisibleItems => [...prevVisibleItems.slice((prevVisibleItems.length > 5 ? 1 : 0), prevVisibleItems.length), newItem]);
@@ -114,25 +119,15 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
     useEffect(() => {
         if (!containerRef.current || !itemHeightState || !renderedHeight || !renderedWidth || items.length > 0 || visibleItems.length > 0) return;
 
-        let newVisibleItems = [...visibleItems];
-        while (newVisibleItems.reduce((acc, item) => acc + (item.height ?? 0), 0) < renderedHeight * 2) {
-            const item = getNextItemHeight(items.length, renderedHeight, renderedWidth);
+        const newVisibleItems = getInitialVisibleItems({
+            renderedHeight,
+            renderedWidth,
+            items,
+            visibleItems,
+            gapValue,
 
-            const newItem: VirtualizedListItem = {
-                index: newVisibleItems.length,
-                height: item.height,
-                width: item.width,
-                top: newVisibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (newVisibleItems.length === 0 ? 0 : (gap ?? (defaultConfigurations.gap as number))), 0),
-                style: {
-                    position: "absolute",
-                    height: `${item.height}px`,
-                    width: `${item.width}px`,
-                    top: `${newVisibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (newVisibleItems.length === 0 ? 0 : (gap ?? (defaultConfigurations.gap as number))), 0)}px`,
-                }
-            };
-
-            newVisibleItems = [...newVisibleItems, newItem];
-        }
+            getNextItemHeight
+        });
 
         setItems(newVisibleItems);
         setVisibleItems(newVisibleItems);

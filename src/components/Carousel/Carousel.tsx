@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import Image from "../../common/Image/Image";
 import VirtualizedList from "../../common/VirtualizedList/VirtualizedList";
+import ElementHelper from "../../utils/ElementHelper";
 
 const CarouselContainer = styled.div<{ type: CarouselType }>`
     display: flex;
@@ -19,14 +20,21 @@ export enum CarouselType {
     GRID = 'grid', //TODO: Implement grid
 };
 
+type CarouselImage = {
+    url: string;
+    height?: number;
+    width?: number;
+};
+
 type CarouselProps = {
+    images?: CarouselImage[];
     type: CarouselType;
 };
 
 const Carousel: React.FC<CarouselProps> = ({ type }) => {
     const carouselRef = useRef<HTMLDivElement>(null);
 
-    const [images, setImages] = useState<{ url: string; height: number; width: number; }[]>([]);
+    const [images, setImages] = useState<CarouselImage[]>([]);
 
     const [carouselWidth, setCarouselWidth] = useState<number>(0);
     const [carouselHeight, setCarouselHeight] = useState<number>(0);
@@ -51,6 +59,13 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         };
 
         setImages(i);
+    }, []);
+
+    useEffect(() => {
+        ElementHelper.getImageHeight('https://picsum.photos/300/3500').then((height) => {    
+            debugger;
+        });
+
     }, []);
 
     const renderItem = (index: number, style: React.CSSProperties) => {
@@ -87,7 +102,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         <CarouselContainer type={type} ref={carouselRef}>
             <VirtualizedList 
                 totalItems={images.length} 
-                configurations={{ threshold: 400, }} 
+                configurations={{ threshold: 1000, }} 
                 getNextItemHeight={getNextItemHeight} renderItem={renderItem} />
         </CarouselContainer>
     );
