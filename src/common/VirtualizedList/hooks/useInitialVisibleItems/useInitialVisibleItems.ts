@@ -29,6 +29,7 @@ const useInitialVisibleItems = () => {
 
             const newItem: VirtualizedListItem = generateNewItem({
                 index: visibleItems.length,
+                totalItemsIndex: visibleItems.length,
                 height: item.height,
                 width: item.width,
                 top: visibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0),

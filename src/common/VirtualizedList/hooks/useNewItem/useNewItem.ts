@@ -2,6 +2,7 @@ import { VirtualizedListItem } from "../../VirtualizedList";
 
 type GetNewItemProps = {
     index: number;
+    totalItemsIndex: number;
     height: number;
     width: number;
     top: number;
@@ -12,6 +13,7 @@ type GetNewItemProps = {
 const useNewItem = () => {
     const generateNewItem = ({
         index,
+        totalItemsIndex,
         height,
         width,
         top,
@@ -19,6 +21,7 @@ const useNewItem = () => {
     }: GetNewItemProps) => {
         const newItem: VirtualizedListItem = {
             index,
+            totalItemsIndex,
             height,
             width,
             top,

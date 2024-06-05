@@ -50,7 +50,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         const i = [];
         for (let x = 0; x < 10; x++) {
             const height = Math.floor(Math.random() * 300) + 600;
-            const width = Math.floor(Math.random() * 200) + 600;
+            const width = Math.floor(Math.random() * 200) + 600 + (Math.floor(Math.random() * 200) + 100);
             i.push({
                 url: `https://picsum.photos/${width}/${height}`,
                 height: height,

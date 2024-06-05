@@ -29,6 +29,7 @@ type VirtualizedListProps = {
 
 export type VirtualizedListItem = {
     index: number;
+    totalItemsIndex: number;
     ref?: React.RefObject<HTMLDivElement> | null;
     style: React.CSSProperties;
     height?: number;
