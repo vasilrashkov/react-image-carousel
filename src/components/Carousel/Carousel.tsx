@@ -19,21 +19,19 @@ export enum CarouselType {
     GRID = 'grid', //TODO: Implement grid
 };
 
-type CarouselImage = {
+export type CarouselImage = {
     url: string;
     height: number;
     width: number;
 };
 
 type CarouselProps = {
-    images?: CarouselImage[];
+    images: CarouselImage[];
     type: CarouselType;
 };
 
-const Carousel: React.FC<CarouselProps> = ({ type }) => {
+const Carousel: React.FC<CarouselProps> = ({ type, images = [] }) => {
     const carouselRef = useRef<HTMLDivElement>(null);
-
-    const [images, setImages] = useState<CarouselImage[]>([]);
 
     const [carouselWidth, setCarouselWidth] = useState<number>(0);
     const [carouselHeight, setCarouselHeight] = useState<number>(0);
@@ -45,29 +43,12 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         setCarouselWidth(carouselRef.current.offsetWidth);
     }, [carouselRef.current]);
 
-    useEffect(() => {
-        const i = [];
-        for (let x = 0; x < 10; x++) {
-            const height = Math.floor(Math.random() * 300) + 600;
-            const width = Math.floor(Math.random() * 200) + 600 + (Math.floor(Math.random() * 200) + 100);
-            i.push({
-                url: `https://picsum.photos/${width}/${height}`,
-                height: height,
-                width: width
-            })
-        };
-
-        setImages(i);
-    }, []);
-
     const renderItem = (index: number, style: React.CSSProperties) => {
         const usedIndex = index === images.length ? 0 : index;
 
         return (
             <Image
                 key={`index-${usedIndex}`}
-                maxHeight={type === CarouselType.VERTICAL_SLIDER ? undefined : carouselHeight}
-                maxWidth={type === CarouselType.HORIZONTAL_SLIDER ? carouselWidth : undefined}
                 src={images[usedIndex].url}
                 style={style}
                 alt={`image-${usedIndex}`}
@@ -85,7 +66,7 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
 
         const ratio = Math.min(containerWidth / imageWidth, containerHeight / imageHeight);
 
-        return { width: imageWidth * ratio, height: imageHeight * ratio };
+        return { width: Math.floor(imageWidth * ratio), height: Math.floor(imageHeight * ratio) };
     };
 
     if (!images.length) return (<div>Loading...</div>);
@@ -94,7 +75,11 @@ const Carousel: React.FC<CarouselProps> = ({ type }) => {
         <CarouselContainer type={type} ref={carouselRef}>
             <VirtualizedList 
                 totalItems={images.length} 
-                configurations={{ threshold: 400, type: VirtualizedListType.HORIZONTAL, gap: 20 }} 
+                configurations={{ 
+                    threshold: 400, 
+                    type: type === CarouselType.HORIZONTAL_SLIDER ? VirtualizedListType.HORIZONTAL : VirtualizedListType.VERTICAL, 
+                    gap: 20 
+                }} 
                 getNextItemDimentions={getNextItemHeight} 
                 renderItem={renderItem} />
         </CarouselContainer>

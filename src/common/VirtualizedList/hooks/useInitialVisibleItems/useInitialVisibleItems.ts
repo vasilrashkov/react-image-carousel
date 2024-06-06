@@ -38,7 +38,7 @@ const useInitialVisibleItems = () => {
                 height: item.height,
                 width: item.width,
                 top: virtualizedListType === VirtualizedListType.VERTICAL ? visibleItems.reduce((prev, curr) => prev + (curr.height ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0) : undefined,
-                left: virtualizedListType === VirtualizedListType.HORIZONTAL ? visibleItems.reduce((prev, curr) => prev + (curr.width ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0) : 0,
+                left: virtualizedListType === VirtualizedListType.HORIZONTAL ? visibleItems.reduce((prev, curr) => prev + (curr.width ?? 0) + (visibleItems.length === 0 ? 0 : gapValue), 0) : undefined,
             });
             
             visibleItems = [...visibleItems, newItem];

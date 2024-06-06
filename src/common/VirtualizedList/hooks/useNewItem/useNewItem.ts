@@ -37,7 +37,6 @@ const useNewItem = () => {
                 ...((styleLeft !== undefined || left !== undefined) && { left: `${styleLeft ?? left}px` }),
             }
         };
-
         return newItem;
     };
 

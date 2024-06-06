@@ -49,6 +49,7 @@ export type VirtualizedListItem = {
 const VirtualizedListContainer = styled.div<{ type: VirtualizedListType }>`
     overflow: auto;
     height: 100%;
+    width: 100%;
     display: flex;
     flex-direction: ${props => props.type === VirtualizedListType.VERTICAL ? "column" : "row"};
     align-items: center;
