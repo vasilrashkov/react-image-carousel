@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef } from "react";
 import styled from "styled-components";
 import Image from "../../common/Image/Image";
 import VirtualizedList, { VirtualizedListType } from "../../common/VirtualizedList/VirtualizedList";
@@ -32,16 +32,6 @@ type CarouselProps = {
 
 const Carousel: React.FC<CarouselProps> = ({ type, images = [] }) => {
     const carouselRef = useRef<HTMLDivElement>(null);
-
-    const [carouselWidth, setCarouselWidth] = useState<number>(0);
-    const [carouselHeight, setCarouselHeight] = useState<number>(0);
-
-    useEffect(() => {
-        if (!carouselRef.current) return;
-
-        setCarouselHeight(carouselRef.current.offsetHeight);
-        setCarouselWidth(carouselRef.current.offsetWidth);
-    }, [carouselRef.current]);
 
     const renderItem = (index: number, style: React.CSSProperties) => {
         const usedIndex = index === images.length ? 0 : index;
