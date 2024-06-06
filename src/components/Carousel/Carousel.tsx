@@ -66,7 +66,7 @@ const Carousel: React.FC<CarouselProps> = ({ type, images = [] }) => {
             <VirtualizedList 
                 totalItems={images.length} 
                 configurations={{ 
-                    threshold: 400, 
+                    threshold: 200, 
                     type: type === CarouselType.HORIZONTAL_SLIDER ? VirtualizedListType.HORIZONTAL : VirtualizedListType.VERTICAL, 
                     gap: 20 
                 }} 
